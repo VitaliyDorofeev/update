@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable max-len */
 /* eslint-disable react/no-array-index-key */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ClipLoader } from 'react-spinners';
 import Select from '../Select';
 import useFetchData from '../../hooks/UseFetchData';
@@ -14,22 +14,55 @@ function PopulateForm({ onChange }) {
   const [selectedReturnPoint, setSelectedReturnPoint] = useState('');
   const [selectTarif, setSelectTarif] = useState('');
 
-  const uniqueRegions = Array.from(new Set(formData.regions.filter((region) => typeof region === 'string' && region.trim() !== '')));
+  const uniqueRegions = useMemo(
+    () => Array.from(
+      new Set(
+        formData.regions.filter(
+          (region) => typeof region === 'string' && region.trim() !== '',
+        ),
+      ),
+    ),
+    [formData.regions],
+  );
 
-  const filteredTradingNetworks = formData.tradingNetworks.filter((_, index) => formData.regions[index] === selectedRegion);
-  const uniqueTradingNetworks = Array.from(new Set(filteredTradingNetworks));
+  const uniqueTradingNetworks = useMemo(() => {
+    const filteredTradingNetworks = formData.tradingNetworks.filter(
+      (_, index) => formData.regions[index] === selectedRegion,
+    );
+    return Array.from(new Set(filteredTradingNetworks));
+  }, [formData.tradingNetworks, selectedRegion]);
 
-  const filteredReturnPoints = formData.returnPoints.filter((_, index) => formData.regions[index] === selectedRegion && formData.tradingNetworks[index] === selectedTradingNetwork);
-  const uniqueReturnPoints = Array.from(new Set(filteredReturnPoints));
+  const uniqueReturnPoints = useMemo(() => {
+    const filteredReturnPoints = formData.returnPoints.filter(
+      (_, index) => formData.regions[index] === selectedRegion
+        && formData.tradingNetworks[index] === selectedTradingNetwork,
+    );
+    return Array.from(new Set(filteredReturnPoints));
+  }, [formData.returnPoints, selectedRegion, selectedTradingNetwork]);
 
-  const filteredPlnList = formData.plnListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
-  const uniquePlnList = Array.from(new Set(filteredPlnList));
+  const uniquePlnList = useMemo(() => {
+    const filteredPlnList = formData.plnListData.filter(
+      (_, index) => formData.returnPoints[index] === selectedReturnPoint
+        && formData.tradingNetworks[index] === selectedTradingNetwork,
+    );
+    return Array.from(new Set(filteredPlnList));
+  }, [formData.plnListData, selectedReturnPoint, selectedTradingNetwork]);
 
-  const filteredRcsList = formData.rcsListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
-  const uniqueRcsList = Array.from(new Set(filteredRcsList));
+  const uniqueRcsList = useMemo(() => {
+    const filteredRcsList = formData.rcsListData.filter(
+      (_, index) => formData.returnPoints[index] === selectedReturnPoint
+        && formData.tradingNetworks[index] === selectedTradingNetwork,
+    );
+    return Array.from(new Set(filteredRcsList));
+  }, [formData.rcsListData, selectedReturnPoint, selectedTradingNetwork]);
 
-  const filteredTarifList = formData.tarifListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
-  const uniqueTarifList = Array.from(new Set(filteredTarifList));
+  const uniqueTarifList = useMemo(() => {
+    const filteredTarifList = formData.tarifListData.filter(
+      (_, index) => formData.returnPoints[index] === selectedReturnPoint
+        && formData.tradingNetworks[index] === selectedTradingNetwork,
+    );
+    return Array.from(new Set(filteredTarifList));
+  }, [formData.tarifListData, selectedReturnPoint, selectedTradingNetwork]);
 
   const handleInputChange = (type, value) => {
     switch (type) {
@@ -83,6 +116,7 @@ function PopulateForm({ onChange }) {
               onChange={(e) => handleInputChange('tradingNetwork', e.target.value)}
               options={uniqueTradingNetworks}
               placeholder="Выберите торговую сеть"
+              disabled={!selectedRegion}
             />
             <Select
               id="return-point"
@@ -90,6 +124,7 @@ function PopulateForm({ onChange }) {
               onChange={(e) => handleInputChange('returnPoint', e.target.value)}
               options={uniqueReturnPoints}
               placeholder="Выберите точку возврата"
+              disabled={!selectedTradingNetwork}
             />
           </div>
 

@@ -35,7 +35,11 @@ function Home() {
 
     if (!isNaN(selectedTarif) && !isNaN(inputNumber)) {
       const calculatedResult = selectedTarif * inputNumber;
-      setResult(`${new Intl.NumberFormat('ru-RU').format(calculatedResult)} Рублей в месяц`);
+      setResult(
+        `${new Intl.NumberFormat('ru-RU').format(
+          calculatedResult,
+        )} Рублей в месяц`,
+      );
     } else {
       console.error('Ошибка: одно из значений не является числом');
       setResult('');
@@ -62,14 +66,15 @@ function Home() {
         <h1 className="title">Возврат паллет</h1>
       </div>
       <form className="pallet-return-form">
-        <PopulateForm
-          onChange={handleFormChange}
-        />
+        <PopulateForm onChange={handleFormChange} />
 
         {isSumBlock && (
           <div className="pallet-return-form__sum">
             <div className="pallet-return-form__group__input-wrapper">
-              <span className="pallet-return-form__group__input-desc">Введите кол-во паллет (месяц) : </span>
+              <span className="pallet-return-form__group__input-desc">
+                Введите кол-во паллет (месяц) :
+                {' '}
+              </span>
               <input
                 className="pallet-return-form__group__input"
                 type="number"
@@ -78,8 +83,15 @@ function Home() {
               />
             </div>
 
-            <span className="pallet-return-form__group__input pallet-return-form__group__input__check">{result}</span>
-            <button className="pallet-return-form__group__btn btn" onClick={handleCalculate}>Рассчитать</button>
+            <span className="pallet-return-form__group__input pallet-return-form__group__input__check">
+              {result}
+            </span>
+            <button
+              className="pallet-return-form__group__btn btn"
+              onClick={handleCalculate}
+            >
+              Рассчитать
+            </button>
           </div>
         )}
       </form>

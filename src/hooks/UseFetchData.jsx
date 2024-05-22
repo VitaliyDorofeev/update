@@ -4,7 +4,9 @@ const spreadsheetId = '1HUCYLt6G0gy7BKOXUpZQ-eM1KHTogk25KvD7MQEovvg';
 const apiKey = 'AIzaSyAngsqkvSAnquqd4uHLIxBlHUD_kE5z6yU';
 
 function fetchDataFromGoogleSheets(range) {
-  return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`)
+  return fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`,
+  )
     .then((response) => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -15,7 +17,9 @@ function fetchDataFromGoogleSheets(range) {
       if (data && data.values && data.values.length > 0) {
         return data.values;
       }
-      throw new Error('Empty data or invalid format returned from Google Sheets');
+      throw new Error(
+        'Empty data or invalid format returned from Google Sheets',
+      );
     })
     .catch((error) => {
       console.error('Error fetching data from Google Sheets:', error);

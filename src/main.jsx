@@ -6,6 +6,4 @@ import './styles/_vars.scss';
 import './styles/_main.scss';
 import './styles/_btn.scss';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <App />,
-);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
