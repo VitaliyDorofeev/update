@@ -1,156 +1,123 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable max-len */
 /* eslint-disable react/no-array-index-key */
 import { useState, useEffect } from 'react';
 import { ClipLoader } from 'react-spinners';
+import Select from '../Select';
+import useFetchData from '../../hooks/UseFetchData';
 
-const spreadsheetId = '1HUCYLt6G0gy7BKOXUpZQ-eM1KHTogk25KvD7MQEovvg';
-const apiKey = 'AIzaSyAngsqkvSAnquqd4uHLIxBlHUD_kE5z6yU';
-
-function fetchDataFromGoogleSheets(range) {
-  return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then((data) => {
-      if (data && data.values && data.values.length > 0) {
-        return data.values;
-      }
-      throw new Error('Empty data or invalid format returned from Google Sheets');
-    })
-    .catch((error) => {
-      console.error('Error fetching data from Google Sheets:', error);
-      throw error;
-    });
-}
-
-function useFetchData(range) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const values = await fetchDataFromGoogleSheets(range);
-        setData(values);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [range]);
-
-  return { data, loading };
-}
-
-function PopulateForm({ onRegionChange, onTradingChange, onReturnPointChange }) {
-  const { data, loading } = useFetchData('Sheet1!A3:F');
+function PopulateForm({ onChange }) {
+  const { loading, formData } = useFetchData('Sheet1!A3:F');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedTradingNetwork, setSelectedTradingNetwork] = useState('');
   const [selectedReturnPoint, setSelectedReturnPoint] = useState('');
+  const [selectTarif, setSelectTarif] = useState('');
 
-  const regions = data.map((row) => row[0]);
-  const tradingNetworks = data.map((row) => row[1]);
-  const returnPoints = data.map((row) => row[2]);
-  const plnListData = data.map((row) => row[3]);
-  const rcsListData = data.map((row) => row[4]);
-  const tarifListData = data.map((row) => row[5]);
+  const uniqueRegions = Array.from(new Set(formData.regions.filter((region) => typeof region === 'string' && region.trim() !== '')));
 
-  const uniqueRegions = Array.from(new Set(regions.filter((region) => typeof region === 'string' && region.trim() !== '')));
-
-  const filteredTradingNetworks = tradingNetworks.filter((_, index) => regions[index] === selectedRegion);
+  const filteredTradingNetworks = formData.tradingNetworks.filter((_, index) => formData.regions[index] === selectedRegion);
   const uniqueTradingNetworks = Array.from(new Set(filteredTradingNetworks));
 
-  const filteredReturnPoints = returnPoints.filter((_, index) => regions[index] === selectedRegion && tradingNetworks[index] === selectedTradingNetwork);
+  const filteredReturnPoints = formData.returnPoints.filter((_, index) => formData.regions[index] === selectedRegion && formData.tradingNetworks[index] === selectedTradingNetwork);
   const uniqueReturnPoints = Array.from(new Set(filteredReturnPoints));
 
-  const filteredPlnList = plnListData.filter((_, index) => returnPoints[index] === selectedReturnPoint && tradingNetworks[index] === selectedTradingNetwork);
+  const filteredPlnList = formData.plnListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
   const uniquePlnList = Array.from(new Set(filteredPlnList));
 
-  const filteredRcsList = rcsListData.filter((_, index) => returnPoints[index] === selectedReturnPoint && tradingNetworks[index] === selectedTradingNetwork);
+  const filteredRcsList = formData.rcsListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
   const uniqueRcsList = Array.from(new Set(filteredRcsList));
 
-  const filteredTarifList = tarifListData.filter((_, index) => returnPoints[index] === selectedReturnPoint && tradingNetworks[index] === selectedTradingNetwork);
+  const filteredTarifList = formData.tarifListData.filter((_, index) => formData.returnPoints[index] === selectedReturnPoint && formData.tradingNetworks[index] === selectedTradingNetwork);
   const uniqueTarifList = Array.from(new Set(filteredTarifList));
 
-  const handleRegionChange = (event) => {
-    const region = event.target.value;
-    setSelectedRegion(region);
-    onRegionChange(region);
-    setSelectedTradingNetwork('');
-    setSelectedReturnPoint('');
+  const handleInputChange = (type, value) => {
+    switch (type) {
+      case 'region':
+        setSelectedRegion(value);
+        onChange(type, value);
+        setSelectedTradingNetwork('');
+        setSelectedReturnPoint('');
+        break;
+      case 'tradingNetwork':
+        setSelectedTradingNetwork(value);
+        onChange(type, value);
+        setSelectedReturnPoint('');
+        break;
+      case 'returnPoint':
+        setSelectedReturnPoint(value);
+        onChange(type, value);
+        break;
+      default:
+        break;
+    }
   };
 
-  const handleTradingChange = (event) => {
-    const tradingNetwork = event.target.value;
-    setSelectedTradingNetwork(tradingNetwork);
-    onTradingChange(tradingNetwork);
-    setSelectedReturnPoint('');
-  };
-
-  const handleReturnPointChange = (event) => {
-    const returnPoint = event.target.value;
-    setSelectedReturnPoint(returnPoint);
-    onReturnPointChange(returnPoint);
-  };
+  useEffect(() => {
+    if (uniqueTarifList.length > 0 && selectTarif !== uniqueTarifList[0]) {
+      const tarif = uniqueTarifList[0];
+      setSelectTarif(tarif);
+      onChange('tarif', tarif);
+    }
+  }, [uniqueTarifList]);
 
   return (
     <div>
       {loading ? (
         <div className="loader-container">
-          <ClipLoader color="#123abc" loading={loading} size={150} />
+          <ClipLoader color="#123abc" size={150} />
         </div>
       ) : (
         <>
           <div className="pallet-return-form__group">
-            <select id="region" className="custom-select" value={selectedRegion} onChange={handleRegionChange}>
-              <option value="">Выберите регион</option>
-              {uniqueRegions.map((region, index) => (
-                <option key={index} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
-            <select id="trading-network" className="custom-select" value={selectedTradingNetwork} onChange={handleTradingChange}>
-              <option value="">Выберите торговую сеть</option>
-              {uniqueTradingNetworks.map((network, index) => (
-                <option key={index} value={network}>
-                  {network}
-                </option>
-              ))}
-            </select>
-            <select id="return-point" className="custom-select" value={selectedReturnPoint} onChange={handleReturnPointChange}>
-              <option value="">Выберите точку возврата</option>
-              {uniqueReturnPoints.map((point, index) => (
-                <option key={index} value={point}>
-                  {point}
-                </option>
-              ))}
-            </select>
+            <Select
+              id="region"
+              value={selectedRegion}
+              onChange={(e) => handleInputChange('region', e.target.value)}
+              options={uniqueRegions}
+              placeholder="Выберите регион"
+            />
+            <Select
+              id="trading-network"
+              value={selectedTradingNetwork}
+              onChange={(e) => handleInputChange('tradingNetwork', e.target.value)}
+              options={uniqueTradingNetworks}
+              placeholder="Выберите торговую сеть"
+            />
+            <Select
+              id="return-point"
+              value={selectedReturnPoint}
+              onChange={(e) => handleInputChange('returnPoint', e.target.value)}
+              options={uniqueReturnPoints}
+              placeholder="Выберите точку возврата"
+            />
           </div>
 
           <div className="pallet-return-form__group">
-            <select id="pln" className="custom-select custom-select--mod" disabled>
-              {uniquePlnList.map((pln, index) => (
-                <option key={index} value={pln}>{pln}</option>
-              ))}
-            </select>
-
-            <select id="rcs" className="custom-select custom-select--mod" disabled>
-              {uniqueRcsList.map((rcs, index) => (
-                <option key={index} value={rcs}>{rcs}</option>
-              ))}
-            </select>
-
-            <select id="tarif" className="custom-select custom-select--mod" disabled>
-              {uniqueTarifList.map((tarif, index) => (
-                <option key={index} value={tarif}>{tarif}</option>
-              ))}
-            </select>
+            <Select
+              id="pln"
+              value={uniquePlnList[0]}
+              options={uniquePlnList}
+              placeholder="PLN"
+              className="custom-select--mod"
+              disabled
+            />
+            <Select
+              id="rcs"
+              value={uniqueRcsList[0]}
+              options={uniqueRcsList}
+              placeholder="РЦ"
+              className="custom-select--mod"
+              disabled
+            />
+            <Select
+              id="tarif"
+              value={selectTarif}
+              options={uniqueTarifList}
+              placeholder="Тариф"
+              className="custom-select--mod"
+              disabled
+            />
           </div>
         </>
       )}

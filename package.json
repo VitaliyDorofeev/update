@@ -10,12 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-spinners": "^0.13.8",
-    "sass": "^1.75.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
@@ -28,6 +24,8 @@
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "react-spinners": "^0.13.8",
+    "sass": "^1.77.1",
     "vite": "^5.2.0"
   }
 }
