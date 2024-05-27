@@ -14,55 +14,56 @@ function PopulateForm({ onChange }) {
   const [selectedReturnPoint, setSelectedReturnPoint] = useState('');
   const [selectTarif, setSelectTarif] = useState('');
 
-  const uniqueRegions = useMemo(
-    () => Array.from(
-      new Set(
-        formData.regions.filter(
-          (region) => typeof region === 'string' && region.trim() !== '',
-        ),
-      ),
-    ),
-    [formData.regions],
-  );
+  const {
+    uniqueRegions,
+    uniqueTradingNetworks,
+    uniqueReturnPoints,
+    uniquePlnList,
+    uniqueRcsList,
+    uniqueTarifList,
+  } = useMemo(() => {
+    const regionsSet = new Set();
+    const tradingNetworksSet = new Set();
+    const returnPointsSet = new Set();
+    const plnListSet = new Set();
+    const rcsListSet = new Set();
+    const tarifListSet = new Set();
 
-  const uniqueTradingNetworks = useMemo(() => {
-    const filteredTradingNetworks = formData.tradingNetworks.filter(
-      (_, index) => formData.regions[index] === selectedRegion,
-    );
-    return Array.from(new Set(filteredTradingNetworks));
-  }, [formData.tradingNetworks, selectedRegion]);
+    formData.regions.forEach((region, index) => {
+      if (typeof region === 'string' && region.trim() !== '') {
+        regionsSet.add(region);
+      }
 
-  const uniqueReturnPoints = useMemo(() => {
-    const filteredReturnPoints = formData.returnPoints.filter(
-      (_, index) => formData.regions[index] === selectedRegion
-        && formData.tradingNetworks[index] === selectedTradingNetwork,
-    );
-    return Array.from(new Set(filteredReturnPoints));
-  }, [formData.returnPoints, selectedRegion, selectedTradingNetwork]);
+      if (formData.regions[index] === selectedRegion) {
+        tradingNetworksSet.add(formData.tradingNetworks[index]);
+      }
 
-  const uniquePlnList = useMemo(() => {
-    const filteredPlnList = formData.plnListData.filter(
-      (_, index) => formData.returnPoints[index] === selectedReturnPoint
-        && formData.tradingNetworks[index] === selectedTradingNetwork,
-    );
-    return Array.from(new Set(filteredPlnList));
-  }, [formData.plnListData, selectedReturnPoint, selectedTradingNetwork]);
+      if (
+        formData.regions[index] === selectedRegion
+        && formData.tradingNetworks[index] === selectedTradingNetwork
+      ) {
+        returnPointsSet.add(formData.returnPoints[index]);
+      }
 
-  const uniqueRcsList = useMemo(() => {
-    const filteredRcsList = formData.rcsListData.filter(
-      (_, index) => formData.returnPoints[index] === selectedReturnPoint
-        && formData.tradingNetworks[index] === selectedTradingNetwork,
-    );
-    return Array.from(new Set(filteredRcsList));
-  }, [formData.rcsListData, selectedReturnPoint, selectedTradingNetwork]);
+      if (
+        formData.returnPoints[index] === selectedReturnPoint
+        && formData.tradingNetworks[index] === selectedTradingNetwork
+      ) {
+        plnListSet.add(formData.plnListData[index]);
+        rcsListSet.add(formData.rcsListData[index]);
+        tarifListSet.add(formData.tarifListData[index]);
+      }
+    });
 
-  const uniqueTarifList = useMemo(() => {
-    const filteredTarifList = formData.tarifListData.filter(
-      (_, index) => formData.returnPoints[index] === selectedReturnPoint
-        && formData.tradingNetworks[index] === selectedTradingNetwork,
-    );
-    return Array.from(new Set(filteredTarifList));
-  }, [formData.tarifListData, selectedReturnPoint, selectedTradingNetwork]);
+    return {
+      uniqueRegions: Array.from(regionsSet),
+      uniqueTradingNetworks: Array.from(tradingNetworksSet),
+      uniqueReturnPoints: Array.from(returnPointsSet),
+      uniquePlnList: Array.from(plnListSet),
+      uniqueRcsList: Array.from(rcsListSet),
+      uniqueTarifList: Array.from(tarifListSet),
+    };
+  }, [formData, selectedRegion, selectedTradingNetwork, selectedReturnPoint]);
 
   const handleInputChange = (type, value) => {
     switch (type) {
